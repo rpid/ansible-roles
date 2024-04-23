@@ -62,6 +62,8 @@
     - name: Create a simple table
       postgresql_query:
         db: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_pass }}"
         query: "CREATE TABLE IF NOT EXISTS table_name (
               id SERIAL PRIMARY KEY,
               username VARCHAR(255) NOT NULL,
