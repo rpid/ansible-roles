@@ -29,8 +29,8 @@
         state: started
         enabled: yes
 
-    - name: Set password for the default PostgreSQL user
-      command: sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_password }}';"
+ #   - name: Set password for the default PostgreSQL user
+ #    command: sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_password }}';"
 
     - name: Create database
       postgresql_db:
@@ -61,9 +61,8 @@
 
     - name: Create a simple table
       postgresql_query:
-        login_password: "{{ postgres_password }}"
         db: "{{ db_name }}"
-        query: "CREATE TABLE IF NOT EXISTS {{ table_name }} (
+        query: "CREATE TABLE IF NOT EXISTS table_name (
               id SERIAL PRIMARY KEY,
               username VARCHAR(255) NOT NULL,
               email VARCHAR(255) NOT NULL UNIQUE
