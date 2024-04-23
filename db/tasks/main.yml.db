@@ -1,0 +1,36 @@
+---
+# tasks file for db- hosts: db
+    - name: Start message
+      debug:
+        msg: 'Create task to install and preparing DB server'
+
+    - name: Install MariaDB
+      apt:
+        name:
+          - mariadb-server
+          - python3-pymysql
+        update_cache: yes
+
+    - name: Start MariaDB service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Create database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        collation: utf8_general_ci
+        encoding: utf8
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      become: true
+
+    - name: Create database user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_pass }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "{{ db_host }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      tags: mariadb_user

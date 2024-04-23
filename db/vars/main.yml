@@ -1,0 +1,6 @@
+---
+# vars file for db
+db_host: localhost
+db_name: lrv
+db_user: lrv
+db_pass: "{{ lookup('env', 'DB_PASS') }}"

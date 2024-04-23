@@ -1,0 +1,70 @@
+---
+# tasks file for db- hosts: db
+    - name: Start message
+      debug:
+        msg: 'Create task to install and preparing DB server'
+
+    - name: Download PostgreSQL key and add it to system keyring
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Install PostgreSQL
+      apt:
+        name:
+          - acl
+          - postgresql
+          - postgresql-client
+          - postgresql-contrib
+        update_cache: yes
+
+    - name: "Install Python packages"
+      pip: "name={{ item }}  state=present"
+      with_items:
+        - psycopg2-binary
+
+    - name: Start PostgreSQL service
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Set password for the default PostgreSQL user
+      command: sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_password }}';"
+
+    - name: Create database
+      postgresql_db:
+        name: "{{ db_name }}"
+        state: present
+        encoding: utf8
+      become: true
+      become_user: postgres
+
+    - name: Create database user
+      postgresql_user:
+        state: present
+        name: "{{ db_user }}"
+        password: "{{ db_pass }}"
+      become: yes
+      become_user: postgres
+      tags: postgresql_db_user
+
+    - name: "Grant db user access to app db"
+      postgresql_privs:
+        type: database
+        database: "{{ db_name }}"
+        roles: "{{ db_user }}"
+        grant_option: no
+        privs: all
+      become: yes
+      become_user: postgres
+
+    - name: Create a simple table
+      postgresql_query:
+        login_password: "{{ postgres_password }}"
+        db: "{{ db_name }}"
+        query: "CREATE TABLE IF NOT EXISTS {{ table_name }} (
+              id SERIAL PRIMARY KEY,
+              username VARCHAR(255) NOT NULL,
+              email VARCHAR(255) NOT NULL UNIQUE
+            );"
