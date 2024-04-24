@@ -44,7 +44,7 @@
         chdir: "{{ app_path }}"
 
     - name: set  DB_CONNECTION
-      lineinfile: dest={{ app_path }}/.env regexp='^DB_CONNECTION=' line=DB_DATABASE=pgsql
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_CONNECTION=' line=DB_CONNECTION=pgsql
 
     - name: set DB_PORT
       lineinfile: dest={{ app_path }}/.env regexp='^DB_PORT=' line=DB_PORT=5432
