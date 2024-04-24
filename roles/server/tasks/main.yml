@@ -1,0 +1,96 @@
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Apache web server
+      apt:
+        name: apache2
+        state: present
+
+    - name: Install PHP and required modules
+      apt:
+        name:
+          - php
+          - libapache2-mod-php
+          - php-pgsql
+          - php-mbstring
+          - php-xml
+          - php-curl
+          - php-json
+          - composer
+        state: present
+
+    - name: Clone application repository
+      git:
+        repo: https://github.com/Practical-DevOps/app-for-devops.git
+        dest: "{{ app_path }}"
+        force: yes
+        version: main
+
+    - name: Run composer install
+      command: composer install
+      args:
+        chdir: "{{ app_path }}"
+      environment:
+        COMPOSER_NO_INTERACTION: "1"
+        COMPOSER_ALLOW_SUPERUSER: "1"
+
+    - name: Copy .env.example to .env
+      command: cp {{ app_path }}/.env.example {{ app_path }}/.env
+
+    - name: Generate application key
+      command: php artisan key:generate
+      args:
+        chdir: "{{ app_path }}"
+
+    - name: set  DB_CONNECTION
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_CONNECTION=' line=DB_DATABASE=pgsql
+
+    - name: set DB_PORT
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_PORT=' line=DB_PORT=5432
+
+    - name: set DB_DATABASE
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_DATABASE=' line=DB_DATABASE={{ db_name }}
+
+    - name: set DB_USERNAME
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_USERNAME=' line=DB_USERNAME={{ db_user }}
+
+    - name: set DB_PASSWORD
+      lineinfile: dest={{ app_path }}/.env regexp='^DB_PASSWORD=' line=DB_PASSWORD={{ db_pass }}
+
+    - name: Run database migrations
+      command: php artisan migrate
+      args:
+        chdir: "{{ app_path }}"
+      become: false
+
+    - name: Set permissions for user www-data
+      ansible.builtin.file:
+        path: "{{ app_path }}"
+        owner: www-data
+        group: www-data
+        mode: 0755
+        recurse: yes
+
+    - name: enabled mod_rewrite
+      apache2_module:
+        state: present
+        name: rewrite
+      notify:
+        - restart apache2
+
+    - name: Install Node.js and NPM
+      apt:
+        name:
+          - nodejs
+        state: present
+
+    - name: Install frontend dependencies
+      npm:
+        path: "{{ app_path }}"
+        state: present
+
+    - name: Build frontend assets
+      command: npm run build
+      args:
+        chdir: "{{ app_path }}"

@@ -4,10 +4,10 @@
       debug:
         msg: 'Create task to install and preparing DB server'
 
-    - name: Download PostgreSQL key and add it to system keyring
-      apt_key:
-        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-        state: present
+  #  - name: Download PostgreSQL key and add it to system keyring
+  #    apt_key:
+  #      url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+  #      state: present
 
     - name: Install PostgreSQL
       apt:
@@ -16,6 +16,7 @@
           - postgresql
           - postgresql-client
           - postgresql-contrib
+        state: present
         update_cache: yes
 
     - name: "Install Python packages"
@@ -58,13 +59,3 @@
         privs: all
       become: yes
       become_user: postgres
-
-    - name: Create a simple table
-      postgresql_query:
-        login_password: "{{ postgres_password }}"
-        db: "{{ db_name }}"
-        query: "CREATE TABLE IF NOT EXISTS {{ table_name }} (
-              id SERIAL PRIMARY KEY,
-              username VARCHAR(255) NOT NULL,
-              email VARCHAR(255) NOT NULL UNIQUE
-            );"

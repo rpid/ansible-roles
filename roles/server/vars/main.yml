@@ -1,0 +1,4 @@
+---
+# vars file for server
+domain: app-for-postgres
+app_path: /var/www/app-for-postgres
