@@ -62,7 +62,7 @@
       command: php artisan migrate
       args:
         chdir: "{{ app_path }}"
-      become: false
+    # become: false
 
     - name: Set permissions for user www-data
       ansible.builtin.file:
