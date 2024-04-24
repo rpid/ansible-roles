@@ -79,6 +79,11 @@
       notify:
         - restart apache2
 
+    - name: create virtual host file
+      template: src=virtualhost.conf dest=/etc/apache2/sites-available/000-default.conf
+      notify:
+        - restart apache2
+
     - name: Install Node.js and NPM
       apt:
         name:
